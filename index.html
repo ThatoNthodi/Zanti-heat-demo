@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zanti Heat demo: crew heat-risk alerts</title>
+<style>
+:root{--bg:#ece8e1;--panel:#fbfaf7;--ink:#1f2326;--mute:#5d646a;--line:#d5d0c6;--accent:#0f6f7a;
+--g:#3f8f52;--y:#e0b420;--o:#e07a28;--r:#c23b2b;--e:#7a1c1c;--ytext:#1f2326;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#15181a;--panel:#1f2326;--ink:#ecebe7;--mute:#9aa2a8;--line:#363c40;--accent:#4fb3bf}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#15181a;--panel:#1f2326;--ink:#ecebe7;--mute:#9aa2a8;--line:#363c40;--accent:#4fb3bf}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Avenir Next","Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:1080px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:26px;margin:0 0 2px;letter-spacing:-.01em}
+h2{font-size:15px;margin:0 0 10px}
+.sub{color:var(--mute);margin:0 0 16px;max-width:70ch}
+.note{font-size:13px;color:var(--mute);border-left:3px solid var(--accent);padding:2px 10px;margin:0 0 18px}
+.grid{display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:16px}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;margin-bottom:14px}
+label.f{display:block;font-weight:600;margin:12px 0 4px}
+label.f:first-of-type{margin-top:0}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{flex:1;border:0;background:transparent;color:var(--ink);padding:8px 4px;font:inherit;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+select{width:100%;padding:8px;font:inherit;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px}
+.tog{display:flex;gap:8px;align-items:center;margin:8px 0}
+.tog input{width:18px;height:18px}
+.hero{border-radius:8px;padding:18px;color:#fff;margin-bottom:14px;transition:background .25s}
+.hero .tier{font-size:44px;font-weight:800;line-height:1;letter-spacing:-.02em;margin:0}
+.hero .why{margin:8px 0 0;opacity:.95}
+.hero .act{margin:12px 0 0;font-size:18px;font-weight:700}
+.t0{background:var(--g)}.t1{background:var(--y);color:var(--ytext)}.t2{background:var(--o)}.t3{background:var(--r)}.t4{background:var(--e)}
+.gauge{position:relative;height:16px;border-radius:8px;overflow:hidden;display:flex;margin:14px 0 4px}
+.gauge span{height:100%}
+.mark{position:absolute;top:-4px;width:4px;height:24px;background:var(--ink);border-radius:2px;transition:left .2s}
+.gl{display:flex;justify-content:space-between;font-size:12px;color:var(--mute)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+.phone{background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:12px;max-width:340px}
+.bubble{border-radius:12px 12px 12px 2px;padding:10px 12px;background:var(--panel);border-left:6px solid var(--c);font-size:16px}
+.bubble small{display:block;color:var(--mute);margin-top:6px;font-size:12px}
+.chip{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);margin:2px 4px 2px 0}
+.chip.warn{border-color:var(--o);color:var(--o)}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
+dt{color:var(--mute)}dd{margin:0}
+.danger{width:100%;padding:10px;border:2px solid var(--e);background:transparent;color:var(--e);font:inherit;font-weight:700;border-radius:6px;cursor:pointer}
+.danger[aria-pressed="true"]{background:var(--e);color:#fff}
+.ok{color:var(--g);font-weight:600}
+</style>
+</head>
+<body>
+<main>
+<h1>Zanti Heat</h1>
+<p class="sub">Early warning for crews working in heat. Set the site conditions and crew context, and see the alert a worker and a supervisor would get.</p>
+<p class="note">Demo with simulated data. Thresholds are illustrative and will be calibrated with an occupational-health physician. Translations are drafts that need native-speaker review before any field use.</p>
+<div class="grid">
+<section aria-label="Controls">
+ <div class="panel">
+  <h2>Crew context</h2>
+  <label class="f" id="l1">Task intensity</label>
+  <div class="seg" role="group" aria-labelledby="l1" id="task"></div>
+  <label class="f" id="l2">Protective equipment</label>
+  <div class="seg" role="group" aria-labelledby="l2" id="ppe"></div>
+  <label class="f" id="l3">Acclimatisation</label>
+  <div class="seg" role="group" aria-labelledby="l3" id="acc"></div>
+ </div>
+ <div class="panel">
+  <h2>Site conditions</h2>
+  <div class="row"><label for="w0" class="f" style="margin:0">WBGT now</label><b id="w0v"></b></div>
+  <input type="range" id="w0" min="20" max="36" step="0.5" value="27">
+  <div class="row" style="margin-top:10px"><label for="w1" class="f" style="margin:0">Forecast in 2 hours</label><b id="w1v"></b></div>
+  <input type="range" id="w1" min="20" max="36" step="0.5" value="29">
+ </div>
+ <div class="panel">
+  <h2>When things go wrong</h2>
+  <div class="tog"><input type="checkbox" id="off"><label for="off">Network down (local gateway only)</label></div>
+  <div class="tog"><input type="checkbox" id="sf"><label for="sf">Sensor failed (wider safety margin)</label></div>
+  <button class="danger" id="em" aria-pressed="false">Report red-flag symptoms</button>
+ </div>
+ <div class="panel">
+  <h2>Worker consent</h2>
+  <div class="tog"><input type="checkbox" id="opt"><label for="opt">This worker opts in to a private personal advisory</label></div>
+  <label class="f" for="str">Simulated personal strain (on the worker’s phone)</label>
+  <select id="str"><option value="0">Normal</option><option value="1">High</option></select>
+ </div>
+</section>
+<section aria-label="Results" aria-live="polite">
+ <div class="hero t0" id="hero">
+  <p class="tier" id="tier"></p>
+  <p class="why" id="why"></p>
+  <p class="act" id="act"></p>
+ </div>
+ <div class="panel">
+  <h2>How far from the crew limit</h2>
+  <div class="gauge" aria-hidden="true"><span style="flex:3;background:var(--g)"></span><span style="flex:3;background:var(--y)"></span><span style="flex:2;background:var(--o)"></span><span style="flex:2;background:var(--r)"></span><div class="mark" id="mark"></div></div>
+  <div class="gl"><span>Well below limit</span><span>At limit</span><span>Well above</span></div>
+ </div>
+ <div class="two">
+  <div class="panel">
+   <h2>Worker alert</h2>
+   <label class="f" for="lang" style="margin-top:0">Language</label>
+   <select id="lang"><option value="en">English</option><option value="zu">isiZulu</option><option value="st">Sesotho</option><option value="tn">Setswana</option></select>
+   <div class="phone" style="margin-top:10px"><div class="bubble" id="bub" style="--c:var(--g)"><span id="msg"></span><small>WhatsApp or SMS, plus site beacon in the tier colour</small></div>
+   <div id="pers" style="margin-top:8px"></div></div>
+  </div>
+  <div class="panel">
+   <h2>Supervisor view</h2>
+   <dl>
+    <dt>Crew status</dt><dd id="sv1"></dd>
+    <dt>Work–rest plan</dt><dd id="sv2"></dd>
+    <dt>Next 2 hours</dt><dd id="sv3"></dd>
+    <dt>Individual data shown</dt><dd class="ok">None</dd>
+   </dl>
+   <p style="font-size:13px;color:var(--mute);margin:10px 0 0">Supervisors see the crew only. Personal advisories never leave the worker’s phone, and health data cannot be used for discipline or employment decisions.</p>
+  </div>
+ </div>
+ <div class="panel">
+  <h2>How this alert was produced</h2>
+  <div id="sys"></div>
+ </div>
+</section>
+</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const S={task:'moderate',ppe:'std',acc:'yes'};
+const LIM={yes:{light:31,moderate:28,heavy:26},no:{light:29,moderate:26,heavy:24}};
+const NAMES=['Green','Yellow','Orange','Red','Emergency'];
+const ACT=['Normal work. Keep water and shade available.','Drink water now. Check shade and new workers.','Take rest breaks now. Cut intensity and cool down.','Stop non-essential work. Cool down, rest, check for symptoms.','Cool the worker, call 112 or 10177, alert the site first-aider.'];
+const PLAN=['Normal schedule','45 min work, 15 min rest','30 min work, 30 min rest','Stop non-essential work','Emergency response'];
+const TXT={
+en:['Heat is normal. Drink water and use shade.','Heat is rising. Drink water now and check on new workers.','High heat. Take your rest break now, slow down and cool off.','Stop work. Move to shade, cool down and rest. Tell your supervisor.','Possible heat illness. Cool the worker, call 112 or 10177 and the site first-aider.'],
+zu:['Ukushisa kuvamile. Phuza amanzi futhi usebenzise umthunzi.','Ukushisa kuyakhula. Phuza amanzi manje futhi uhlole abasebenzi abasha.','Ukushisa okukhulu. Phumula manje, wehlise ijubane, uzipholise.','Yeka umsebenzi. Hamba emthunzini, uzipholise futhi uphumule. Tshela umphathi wakho.','Kungenzeka ukugula ngokushisa. Pholisa umuntu, ushayele i-112 noma i-10177, ubize ne-first-aider yesizinda.'],
+st:['Mocheso o tloaelehile. Noa metsi ’me u sebelise moriti.','Mocheso oa nyoloha. Noa metsi hona joale ’me u hlahlobe basebetsi ba bacha.','Mocheso o phahameng. Phomola hona joale, fokotsa lebelo ’me u itlose.','Emisa mosebetsi. Eya moriting, u itlose ’me u phomole. Bolella molaoli oa hao.','Ho kanna ha e-ba ho kula ka mocheso. Pholosa motho, letsetsa 112 kapa 10177 ’me u memele ea thusang pele.'],
+tn:['Mogote o tlwaelegile. Nwa metsi o bo o dirise moriti.','Mogote o a oketsega. Nwa metsi jaanong o bo o lekola badiri ba basha.','Mogote o mo godimo. Ikhutse jaanong, fokotsa lebelo o bo o itsididise.','Emisa tiro. Ya mo moriting, o itsididise o bo o ikhutse. Bolelela molebedi wa gago.','Go ka nna bolwetse jwa mogote. Tsididisa motho, founela 112 kana 10177 o bo o bitsa motlhokomedi wa kalafi ya ntlha.']};
+const COL=['var(--g)','var(--y)','var(--o)','var(--r)','var(--e)'];
+function seg(id,opts,key){const el=$(id);opts.forEach(([v,t])=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.dataset.v=v;b.onclick=()=>{S[key]=v;sync();run()};el.appendChild(b)});}
+function sync(){for(const[id,k]of[['task','task'],['ppe','ppe'],['acc','acc']])[...$(id).children].forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S[k]))}
+seg('task',[['light','Light'],['moderate','Moderate'],['heavy','Heavy']],'task');
+seg('ppe',[['std','Standard'],['full','Heavy or impermeable']],'ppe');
+seg('acc',[['yes','Acclimatised'],['no','New or returning']],'acc');
+function run(){
+ const off=$('off').checked,sf=$('sf').checked,em=$('em').getAttribute('aria-pressed')==='true';
+ const w0=+$('w0').value,w1=+$('w1').value;$('w0v').textContent=w0.toFixed(1)+' °C';$('w1v').textContent=w1.toFixed(1)+' °C';
+ const lim=LIM[S.acc][S.task],adj=(S.ppe==='full'?3:0)+(sf?1.5:0)+(off?0.5:0);
+ const m=w0+adj-lim,fm=off?-99:w1+adj-lim;
+ let t=m>=2?3:m>=0?2:(m>=-3||fm>=0)?1:0;
+ if(em)t=4;
+ $('hero').className='hero t'+t;$('tier').textContent=NAMES[t];
+ const ctx=[S.task+' task',S.ppe==='full'?'heavy PPE':'standard PPE',S.acc==='yes'?'acclimatised':'unacclimatised'].join(', ');
+ $('why').textContent=t===4?'A red-flag symptom was reported.':'Effective WBGT '+(w0+adj).toFixed(1)+' °C against a crew limit of '+lim+' °C ('+ctx+').';
+ $('act').textContent=ACT[t];
+ $('mark').style.left='calc('+Math.max(0,Math.min(100,(m+6)/10*100))+'% - 2px)';
+ $('bub').style.setProperty('--c',COL[t]);$('msg').textContent=TXT[$('lang').value][t];
+ let p='';
+ if($('opt').checked){const hi=$('str').value==='1';const pt=hi?Math.min(t+1,3):t;
+  p='<span class="chip'+(hi?' warn':'')+'">Private advisory: '+(hi?'be extra careful, take a break now':'no change from crew alert')+'</span>'+(hi&&t<4?'<br><small style="color:var(--mute)">Personal strain can only make advice more cautious (here: '+NAMES[pt]+').</small>':'');}
+ else p='<span class="chip">Personal advisory off. The crew alert still works.</span>';
+ $('pers').innerHTML=p;
+ $('sv1').textContent=NAMES[t]+' at this work zone';$('sv2').textContent=PLAN[t];
+ $('sv3').textContent=off?'Forecast unavailable, safety margin widened':(fm>=2?'Likely Red':fm>=0?'Likely Orange':fm>=-3?'Likely Yellow':'Likely Green');
+ $('sys').innerHTML='<dl><dt>Data path</dt><dd>'+(off?'Local gateway on site. Rules engine runs offline, forecast not used.':'Cloud platform with site sensors and 2-hour forecast.')+'</dd><dt>Sensor</dt><dd>'+(sf?'Failed. Nearest sensor assumed, margin widened by 1.5 °C.':'Healthy')+'</dd><dt>Fallback</dt><dd>If every sensor fails: fixed work–rest protocol set by the forecast and the hottest hours.</dd><dt>Worker alert</dt><dd>Colour, icon and one action, in the worker’s language.</dd></dl>';
+}
+['w0','w1','off','sf','opt','str','lang'].forEach(i=>$(i).addEventListener('input',run));
+$('em').onclick=e=>{const b=e.currentTarget;b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')!=='true');run()};
+sync();run();
+</script>
+</body>
+</html>
