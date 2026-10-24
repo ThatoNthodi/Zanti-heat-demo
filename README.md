@@ -2,7 +2,7 @@
 
 An interactive prototype of Zanti Heat, a worker-first heat early-warning and decision-support system for outdoor and industrial workers. Built by 6.0 Industries for the Future Health Digital Innovation Challenge (Population Health: Climate-Resilient Worker Health).
 
-**Live demo:** https://ThatoNthodi.github.io/zanti-heat-demo/
+**Live demo:** https://thatonthodi.github.io/Zanti-heat-demo/
 
 ## What it shows
 
