@@ -54,6 +54,18 @@ dt{color:var(--mute)}dd{margin:0}
 .danger{width:100%;padding:10px;border:2px solid var(--e);background:transparent;color:var(--e);font:inherit;font-weight:700;border-radius:6px;cursor:pointer}
 .danger[aria-pressed="true"]{background:var(--e);color:#fff}
 .ok{color:var(--g);font-weight:600}
+
+[hidden]{display:none!important}
+.bk{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bk .full{grid-column:1/-1}
+@media (max-width:760px){.bk{grid-template-columns:1fr}}
+.bk label{display:block;font-weight:600;margin-bottom:4px}
+.bk input[type=text],.bk input[type=email],.bk input[type=tel],.bk input[type=number],.bk textarea{width:100%;padding:9px;font:inherit;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px}
+.bk textarea{min-height:90px;resize:vertical}
+.bk .chk{display:flex;gap:8px;align-items:flex-start;font-weight:400}
+.bk .chk input{width:18px;height:18px;margin-top:3px}
+.send{padding:12px 22px;border:0;border-radius:6px;background:var(--ink);color:var(--panel);font:inherit;font-weight:700;cursor:pointer}
+.fine{font-size:12px;color:var(--mute);margin:8px 0 0}
 </style>
 </head>
 <body>
@@ -128,6 +140,31 @@ dt{color:var(--mute)}dd{margin:0}
  </div>
 </section>
 </div>
+
+<section id="book" class="panel" aria-labelledby="bk-h" style="margin-top:6px">
+ <h2 id="bk-h" style="font-size:20px">Request a pilot or demo for your site</h2>
+ <p class="sub" style="margin-bottom:12px">Tell us about your site and we will get back to you.</p>
+ <p id="sent" class="ok" role="status" hidden>Thank you. Your request has been sent and we will be in touch.</p>
+ <form class="bk" action="https://formsubmit.co/nthodithato@gmail.com" method="POST">
+  <input type="hidden" name="_subject" value="New Zanti Heat pilot request">
+  <input type="hidden" name="_template" value="table">
+  <input type="hidden" name="_next" value="https://thatonthodi.github.io/Zanti-heat-demo/?sent=1#book">
+  <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true">
+  <div><label for="b-name">Full name</label><input type="text" id="b-name" name="Name" required autocomplete="name"></div>
+  <div><label for="b-org">Organisation</label><input type="text" id="b-org" name="Organisation" required autocomplete="organization"></div>
+  <div><label for="b-role">Your role</label><input type="text" id="b-role" name="Role" autocomplete="organization-title"></div>
+  <div><label for="b-email">Email</label><input type="email" id="b-email" name="email" required autocomplete="email"></div>
+  <div><label for="b-phone">Phone or WhatsApp (optional)</label><input type="tel" id="b-phone" name="Phone" autocomplete="tel"></div>
+  <div><label for="b-sector">Sector</label><select id="b-sector" name="Sector" required><option value="">Choose one</option><option>Mining</option><option>Construction</option><option>Logistics and transport</option><option>Manufacturing</option><option>Agriculture</option><option>Other</option></select></div>
+  <div><label for="b-sites">Number of sites</label><input type="number" id="b-sites" name="Sites" min="1"></div>
+  <div><label for="b-workers">Approximate number of workers</label><input type="number" id="b-workers" name="Workers" min="1"></div>
+  <div class="full"><label for="b-when">Preferred date or time for a call</label><input type="text" id="b-when" name="Preferred time" placeholder="For example, next week in the mornings"></div>
+  <div class="full"><label for="b-msg">Anything we should know?</label><textarea id="b-msg" name="Message"></textarea></div>
+  <div class="full"><label class="chk" for="b-ok"><input type="checkbox" id="b-ok" name="Consent" value="Yes" required><span>I agree that 6.0 Industries may contact me about this request.</span></label></div>
+  <div class="full"><button class="send" type="submit">Send request</button>
+  <p class="fine">Your details are used only to respond to this request. The form is delivered by FormSubmit.</p></div>
+ </form>
+</section>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -172,6 +209,7 @@ function run(){
 ['w0','w1','off','sf','opt','str','lang'].forEach(i=>$(i).addEventListener('input',run));
 $('em').onclick=e=>{const b=e.currentTarget;b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')!=='true');run()};
 sync();run();
+if(location.search.indexOf('sent=1')>-1){document.getElementById('sent').hidden=false}
 </script>
 </body>
 </html>
